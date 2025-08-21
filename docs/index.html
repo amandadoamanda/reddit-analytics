@@ -20,64 +20,64 @@
             <h1>r/apstudents Activity Tracker</h1>
             <p class="subtitle">Real-time tracking of activity in the AP Students subreddit</p>
             <div class="last-updated">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
                 <span id="lastUpdated">Loading...</span>
             </div>
         </header>
 
         <div class="loading" id="loading">
-            <div class="spinner"></div>
             <p>Loading Reddit activity data...</p>
         </div>
 
-        <div class="error-message" id="errorMessage" style="display: none;">
+        <div class="error" id="errorMessage" style="display: none;">
             <h3>Unable to load data</h3>
             <p>There was an error loading the Reddit activity data. Please try again later.</p>
         </div>
 
         <main class="dashboard" id="dashboard" style="display: none;">
             <!-- Key Metrics -->
-            <section class="metrics-grid">
+            <section class="dashboard-grid">
                 <div class="metric-card">
-                    <h3>Posts (Last 100)</h3>
+                    <div class="metric-label">Posts (Last 100)</div>
                     <div class="metric-value" id="totalPosts">-</div>
                 </div>
                 <div class="metric-card">
-                    <h3>Total Score</h3>
+                    <div class="metric-label">Total Score</div>
                     <div class="metric-value" id="totalScore">-</div>
                 </div>
                 <div class="metric-card">
-                    <h3>Total Comments</h3>
+                    <div class="metric-label">Total Comments</div>
                     <div class="metric-value" id="totalComments">-</div>
                 </div>
                 <div class="metric-card">
-                    <h3>Current Hour Activity</h3>
+                    <div class="metric-label">Current Hour Activity</div>
                     <div class="metric-value" id="currentHourActivity">-</div>
                 </div>
             </section>
 
             <!-- Activity Heatmap -->
-            <section class="chart-section">
-                <h2>24-Hour Activity Heatmap</h2>
-                <p class="chart-description">Posts by hour of day (UTC time)</p>
+            <section class="card">
+                <h2>Activity Pattern</h2>
                 <div class="chart-container">
                     <canvas id="heatmapChart"></canvas>
                 </div>
             </section>
 
-            <!-- Activity Trends -->
-            <section class="chart-section">
-                <h2>Activity Trends</h2>
-                <p class="chart-description">Activity patterns over time</p>
+            <!-- Engagement Trends -->
+            <section class="card">
+                <h2>Engagement Trends</h2>
                 <div class="chart-container">
                     <canvas id="trendsChart"></canvas>
                 </div>
             </section>
 
             <!-- Recent Posts -->
-            <section class="recent-posts">
+            <section class="card">
                 <h2>Recent Posts</h2>
-                <p class="section-description">Latest posts from r/apstudents</p>
-                <div id="recentPostsList" class="posts-list">
+                <div id="recentPostsList" class="post-list">
                     <!-- Posts will be populated by JavaScript -->
                 </div>
             </section>
