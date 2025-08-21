@@ -138,8 +138,10 @@ class RedditActivityTracker {
             const timeAgo = this.getTimeAgo(postTime);
             
             return `
-                <div class="post-item" onclick="window.open('${post.url}', '_blank')">
-                    <div class="post-title">${this.escapeHtml(post.title)}</div>
+                <div class="post-item">
+                    <a href="${post.url}" target="_blank" rel="noopener" class="post-title-link">
+                        ${this.escapeHtml(post.title)}
+                    </a>
                     <div class="post-meta">
                         <span>${post.score} points</span>
                         <span>${post.comments} comments</span>
