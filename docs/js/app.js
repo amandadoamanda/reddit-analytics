@@ -165,134 +165,56 @@ class RedditActivityTracker {
      * Initialize the 24-hour activity heatmap chart
      */
     initializeHeatmapChart() {
-        const ctx = document.getElementById('heatmapChart').getContext('2d');
-        const hourlyData = this.data.hourly_posts || {};
+        const canvas = document.getElementById('heatmapChart');
+        if (!canvas) return;
         
-        // Create data for all 24 hours
-        const hours = Array.from({ length: 24 }, (_, i) => i);
-        const data = hours.map(hour => hourlyData[hour] || 0);
-        const labels = hours.map(hour => {
-            const time = new Date();
-            time.setHours(hour, 0, 0, 0);
-            return time.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                hour12: true 
-            });
-        });
-
-        this.charts.heatmap = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Posts',
-                    data: data,
-                    backgroundColor: (ctx) => {
-                        const value = ctx.parsed.y;
-                        const max = Math.max(...data);
-                        const intensity = max > 0 ? value / max : 0;
-                        return `rgba(255, 69, 0, ${0.3 + intensity * 0.7})`;
-                    },
-                    borderColor: '#ff4500',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: (context) => {
-                                const hour = hours[context[0].dataIndex];
-                                return `${hour}:00 - ${hour + 1}:00 UTC`;
-                            },
-                            label: (context) => {
-                                return `${context.parsed.y} posts`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Hour of Day (UTC)'
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Number of Posts'
-                        },
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                }
-            }
-        });
+        const ctx = canvas.getContext('2d');
+        
+        // Check if Chart.js and our custom function are loaded
+        if (typeof Chart === 'undefined' || typeof createActivityHeatmap === 'undefined') {
+            console.error('Chart.js or createActivityHeatmap not loaded');
+            return;
+        }
+        
+        // Destroy existing chart if it exists
+        if (this.charts.heatmap) {
+            this.charts.heatmap.destroy();
+        }
+        
+        // Create new chart using our custom function
+        try {
+            this.charts.heatmap = createActivityHeatmap(ctx, this.data);
+        } catch (error) {
+            console.error('Failed to create heatmap chart:', error);
+        }
     }
 
     /**
-     * Initialize the trends chart (placeholder for now)
+     * Initialize the trends chart
      */
     initializeTrendsChart() {
-        const ctx = document.getElementById('trendsChart').getContext('2d');
+        const canvas = document.getElementById('trendsChart');
+        if (!canvas) return;
         
-        // For now, show a simple message since we only have current data
-        // In a real implementation, this would show historical trends
-        this.charts.trends = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Current'],
-                datasets: [{
-                    label: 'Total Posts',
-                    data: [this.data.total_posts],
-                    borderColor: '#ff4500',
-                    backgroundColor: 'rgba(255, 69, 0, 0.1)',
-                    borderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Historical trends will appear as more data is collected'
-                    },
-                    legend: {
-                        display: true
-                    }
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Time'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Number of Posts'
-                        },
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+        const ctx = canvas.getContext('2d');
+        
+        // Check if Chart.js and our custom function are loaded
+        if (typeof Chart === 'undefined' || typeof createEngagementChart === 'undefined') {
+            console.error('Chart.js or createEngagementChart not loaded');
+            return;
+        }
+        
+        // Destroy existing chart if it exists
+        if (this.charts.trends) {
+            this.charts.trends.destroy();
+        }
+        
+        // Create new chart using our custom function
+        try {
+            this.charts.trends = createEngagementChart(ctx, this.data);
+        } catch (error) {
+            console.error('Failed to create trends chart:', error);
+        }
     }
 
     /**

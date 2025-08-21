@@ -1,4 +1,9 @@
 // Chart.js configurations for shadcn-inspired dark theme
+// Wait for Chart.js to be available
+if (typeof Chart === 'undefined') {
+    console.error('Chart.js is not loaded');
+}
+
 const chartColors = {
     primary: '#60a5fa',
     primaryDark: '#3b82f6',
@@ -12,10 +17,12 @@ const chartColors = {
     gradient2: 'rgba(96, 165, 250, 0.05)'
 };
 
-// Set default Chart.js options for dark theme
-Chart.defaults.color = chartColors.text;
-Chart.defaults.borderColor = chartColors.border;
-Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+// Set default Chart.js options for dark theme (only if Chart is loaded)
+if (typeof Chart !== 'undefined') {
+    Chart.defaults.color = chartColors.text;
+    Chart.defaults.borderColor = chartColors.border;
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+}
 
 function createActivityHeatmap(ctx, data) {
     // For now, create a simple visualization of active users over collection times
