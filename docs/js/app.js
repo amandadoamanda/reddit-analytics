@@ -30,11 +30,10 @@ class RedditActivityTracker {
             // Initialize charts
             this.initializeCharts();
             
-            // Initialize historical data and charts
-            await this.initializeHistoricalCharts();
-            
-            // Set up time range controls
-            this.setupTimeControls();
+            // Initialize time-series charts
+            if (typeof initializeTimeSeriesCharts !== 'undefined') {
+                initializeTimeSeriesCharts();
+            }
             
             // Show the dashboard
             this.showDashboard();
@@ -227,72 +226,9 @@ class RedditActivityTracker {
         }
     }
 
-    /**
-     * Initialize historical charts
-     */
-    async initializeHistoricalCharts() {
-        // Create historical data manager
-        this.historicalManager = new HistoricalDataManager();
-        await this.historicalManager.loadHistoricalData();
-        
-        // Initialize active users chart
-        const activeUsersCanvas = document.getElementById('activeUsersChart');
-        if (activeUsersCanvas) {
-            const ctx = activeUsersCanvas.getContext('2d');
-            if (typeof createActiveUsersChart !== 'undefined') {
-                try {
-                    this.charts.activeUsers = createActiveUsersChart(ctx, this.historicalManager, 'hour');
-                } catch (error) {
-                    console.error('Failed to create active users chart:', error);
-                }
-            }
-        }
-        
-        // Initialize engagement chart
-        const engagementCanvas = document.getElementById('engagementChart');
-        if (engagementCanvas) {
-            const ctx = engagementCanvas.getContext('2d');
-            if (typeof createEngagementChart !== 'undefined') {
-                try {
-                    this.charts.engagement = createEngagementChart(ctx, this.historicalManager, 'hour');
-                } catch (error) {
-                    console.error('Failed to create engagement chart:', error);
-                }
-            }
-        }
-    }
+    // Historical charts are now handled by time-series.js
 
-    /**
-     * Set up time range toggle controls
-     */
-    setupTimeControls() {
-        const buttons = document.querySelectorAll('.time-btn');
-        buttons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const chartType = e.target.dataset.chart;
-                const range = e.target.dataset.range;
-                
-                // Update active state
-                document.querySelectorAll(`.time-btn[data-chart="${chartType}"]`).forEach(b => {
-                    b.classList.remove('active');
-                });
-                e.target.classList.add('active');
-                
-                // Update the appropriate chart
-                if (chartType === 'activeUsers' && this.charts.activeUsers) {
-                    this.charts.activeUsers.destroy();
-                    const canvas = document.getElementById('activeUsersChart');
-                    const ctx = canvas.getContext('2d');
-                    this.charts.activeUsers = createActiveUsersChart(ctx, this.historicalManager, range);
-                } else if (chartType === 'engagement' && this.charts.engagement) {
-                    this.charts.engagement.destroy();
-                    const canvas = document.getElementById('engagementChart');
-                    const ctx = canvas.getContext('2d');
-                    this.charts.engagement = createEngagementChart(ctx, this.historicalManager, range);
-                }
-            });
-        });
-    }
+    // Time controls are now handled by time-series.js
 
     /**
      * Show loading state
