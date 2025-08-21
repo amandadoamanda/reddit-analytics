@@ -60,18 +60,19 @@ def fetch_subreddit_about(subreddit, max_retries=3):
     
     return None
 
-def fetch_reddit_posts(subreddit, max_retries=3):
+def fetch_reddit_posts(subreddit, sort='hot', max_retries=3):
     """
-    Fetch recent posts from Reddit's public JSON API with retry logic.
+    Fetch posts from Reddit's public JSON API with retry logic.
     
     Args:
         subreddit (str): The subreddit name (without r/)
+        sort (str): Sort order - 'hot', 'new', 'top', 'rising'
         max_retries (int): Maximum number of retry attempts
         
     Returns:
         dict or None: Reddit API response data or None if failed
     """
-    url = f"https://www.reddit.com/r/{subreddit}/new.json?limit=25"
+    url = f"https://www.reddit.com/r/{subreddit}/{sort}.json?limit=50"
     
     # Use a browser-like User-Agent to avoid blocks
     headers = {
@@ -124,6 +125,23 @@ def fetch_reddit_posts(subreddit, max_retries=3):
     return None
 
 
+def analyze_post_type(title, text=""):
+    """Categorize post type for marketing insights"""
+    title_lower = title.lower()
+    
+    if any(word in title_lower for word in ['help', 'how to', 'how do', 'can someone', 'need help', 'struggling']):
+        return 'help_request'
+    elif any(word in title_lower for word in ['got a 5', 'got a 4', 'passed', 'score', 'results']):
+        return 'success_story'
+    elif any(word in title_lower for word in ['advice', 'tips', 'guide', 'resources']):
+        return 'advice_sharing'
+    elif '?' in title:
+        return 'question'
+    elif any(word in title_lower for word in ['meme', 'anyone else', 'when you', 'that moment']):
+        return 'relatable_content'
+    else:
+        return 'discussion'
+
 def process_reddit_data(about_data, posts_data, subreddit):
     """
     Process Reddit API responses and extract relevant metrics.
@@ -151,38 +169,80 @@ def process_reddit_data(about_data, posts_data, subreddit):
         if subreddit_info['active_users'] == 0 and subreddit_info['accounts_active'] > 0:
             subreddit_info['active_users'] = subreddit_info['accounts_active']
     
-    # Process recent posts
+    # Process recent posts with marketing insights
     posts_info = {
         'recent_posts': [],
         'total_score': 0,
         'total_comments': 0,
-        'posts_last_hour': 0
+        'posts_last_hour': 0,
+        'posts_last_24h': 0,
+        'content_types': {},
+        'high_engagement_posts': [],
+        'avg_engagement_rate': 0,
+        'best_performing_type': None
     }
     
     if posts_data and 'data' in posts_data:
         posts = posts_data['data'].get('children', [])
         current_time = datetime.utcnow()
         one_hour_ago = current_time.timestamp() - 3600
+        one_day_ago = current_time.timestamp() - 86400
         
-        for post in posts[:10]:  # Keep top 10 for display
+        engagement_by_type = {}
+        
+        for i, post in enumerate(posts):
             post_data = post['data']
             created_time = post_data.get('created_utc', 0)
             
-            # Count posts from last hour
+            # Time-based counting
             if created_time > one_hour_ago:
                 posts_info['posts_last_hour'] += 1
+            if created_time > one_day_ago:
+                posts_info['posts_last_24h'] += 1
             
-            posts_info['recent_posts'].append({
-                'title': post_data.get('title', ''),
-                'score': post_data.get('score', 0),
-                'comments': post_data.get('num_comments', 0),
-                'created_utc': created_time,
-                'author': post_data.get('author', '[deleted]'),
-                'url': f"https://reddit.com{post_data.get('permalink', '')}"
-            })
+            # Analyze post type
+            post_type = analyze_post_type(post_data.get('title', ''))
+            posts_info['content_types'][post_type] = posts_info['content_types'].get(post_type, 0) + 1
             
-            posts_info['total_score'] += post_data.get('score', 0)
-            posts_info['total_comments'] += post_data.get('num_comments', 0)
+            # Calculate engagement
+            score = post_data.get('score', 0)
+            comments = post_data.get('num_comments', 0)
+            engagement = score + (comments * 2)  # Comments weighted more
+            
+            # Track engagement by type
+            if post_type not in engagement_by_type:
+                engagement_by_type[post_type] = []
+            engagement_by_type[post_type].append(engagement)
+            
+            # Store post data (top 10 for display)
+            if i < 10:
+                posts_info['recent_posts'].append({
+                    'title': post_data.get('title', ''),
+                    'score': score,
+                    'comments': comments,
+                    'created_utc': created_time,
+                    'author': post_data.get('author', '[deleted]'),
+                    'url': f"https://reddit.com{post_data.get('permalink', '')}",
+                    'type': post_type,
+                    'engagement': engagement
+                })
+            
+            # Track high engagement posts
+            if engagement > 20:  # Threshold for "high engagement"
+                posts_info['high_engagement_posts'].append({
+                    'title': post_data.get('title', ''),
+                    'engagement': engagement,
+                    'type': post_type
+                })
+            
+            posts_info['total_score'] += score
+            posts_info['total_comments'] += comments
+        
+        # Calculate best performing content type
+        if engagement_by_type:
+            avg_by_type = {k: sum(v)/len(v) for k, v in engagement_by_type.items()}
+            posts_info['best_performing_type'] = max(avg_by_type, key=avg_by_type.get)
+            posts_info['avg_engagement_rate'] = sum(avg_by_type.values()) / len(avg_by_type)
     
     return {
         'timestamp': datetime.utcnow().isoformat(),
@@ -190,10 +250,16 @@ def process_reddit_data(about_data, posts_data, subreddit):
         'active_users': subreddit_info.get('active_users', 0),
         'subscribers': subreddit_info.get('subscribers', 0),
         'posts_last_hour': posts_info['posts_last_hour'],
+        'posts_last_24h': posts_info['posts_last_24h'],
         'total_score_recent': posts_info['total_score'],
         'total_comments_recent': posts_info['total_comments'],
         'recent_posts': posts_info['recent_posts'],
-        'collection_time_utc': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        'content_types': posts_info['content_types'],
+        'high_engagement_posts': posts_info['high_engagement_posts'][:5],  # Top 5
+        'best_performing_type': posts_info['best_performing_type'],
+        'avg_engagement_rate': round(posts_info['avg_engagement_rate'], 2),
+        'collection_time_utc': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+        'collection_hour': datetime.utcnow().hour
     }
 
 
@@ -246,9 +312,9 @@ def main():
     # Create data directory
     Path('docs/data').mkdir(parents=True, exist_ok=True)
     
-    # Fetch subreddit info and recent posts
+    # Fetch subreddit info and hot posts (better for engagement analysis)
     about_data = fetch_subreddit_about(subreddit)
-    posts_data = fetch_reddit_posts(subreddit)
+    posts_data = fetch_reddit_posts(subreddit, sort='hot')
     
     if about_data or posts_data:
         processed_data = process_reddit_data(about_data, posts_data, subreddit)

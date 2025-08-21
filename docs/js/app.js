@@ -173,8 +173,8 @@ class RedditActivityTracker {
         const ctx = canvas.getContext('2d');
         
         // Check if Chart.js and our custom function are loaded
-        if (typeof Chart === 'undefined' || typeof createActivityHeatmap === 'undefined') {
-            console.error('Chart.js or createActivityHeatmap not loaded');
+        if (typeof Chart === 'undefined' || typeof createContentPerformanceChart === 'undefined') {
+            console.error('Chart.js or createContentPerformanceChart not loaded');
             return;
         }
         
@@ -185,9 +185,9 @@ class RedditActivityTracker {
         
         // Create new chart using our custom function
         try {
-            this.charts.heatmap = createActivityHeatmap(ctx, this.data);
+            this.charts.heatmap = createContentPerformanceChart(ctx, this.data);
         } catch (error) {
-            console.error('Failed to create heatmap chart:', error);
+            console.error('Failed to create content chart:', error);
         }
     }
 
@@ -201,8 +201,8 @@ class RedditActivityTracker {
         const ctx = canvas.getContext('2d');
         
         // Check if Chart.js and our custom function are loaded
-        if (typeof Chart === 'undefined' || typeof createEngagementChart === 'undefined') {
-            console.error('Chart.js or createEngagementChart not loaded');
+        if (typeof Chart === 'undefined' || typeof createEngagementTimelineChart === 'undefined') {
+            console.error('Chart.js or createEngagementTimelineChart not loaded');
             return;
         }
         
@@ -213,9 +213,9 @@ class RedditActivityTracker {
         
         // Create new chart using our custom function
         try {
-            this.charts.trends = createEngagementChart(ctx, this.data);
+            this.charts.trends = createEngagementTimelineChart(ctx, this.data);
         } catch (error) {
-            console.error('Failed to create trends chart:', error);
+            console.error('Failed to create engagement chart:', error);
         }
     }
 
