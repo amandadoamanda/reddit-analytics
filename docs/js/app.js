@@ -7,6 +7,7 @@ class RedditActivityTracker {
     constructor() {
         this.data = null;
         this.charts = {};
+        this.historicalManager = null;
         this.init();
     }
 
@@ -28,6 +29,12 @@ class RedditActivityTracker {
             
             // Initialize charts
             this.initializeCharts();
+            
+            // Initialize historical data and charts
+            await this.initializeHistoricalCharts();
+            
+            // Set up time range controls
+            this.setupTimeControls();
             
             // Show the dashboard
             this.showDashboard();
@@ -82,6 +89,7 @@ class RedditActivityTracker {
     updateLastUpdated() {
         const timestamp = new Date(this.data.timestamp);
         const timeString = timestamp.toLocaleString('en-US', {
+            timeZone: 'America/New_York',
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -90,7 +98,7 @@ class RedditActivityTracker {
             timeZoneName: 'short'
         });
         
-        document.getElementById('lastUpdated').textContent = `Last updated: ${timeString}`;
+        document.getElementById('lastUpdated').textContent = timeString;
     }
 
     /**
@@ -220,6 +228,73 @@ class RedditActivityTracker {
     }
 
     /**
+     * Initialize historical charts
+     */
+    async initializeHistoricalCharts() {
+        // Create historical data manager
+        this.historicalManager = new HistoricalDataManager();
+        await this.historicalManager.loadHistoricalData();
+        
+        // Initialize active users chart
+        const activeUsersCanvas = document.getElementById('activeUsersChart');
+        if (activeUsersCanvas) {
+            const ctx = activeUsersCanvas.getContext('2d');
+            if (typeof createActiveUsersChart !== 'undefined') {
+                try {
+                    this.charts.activeUsers = createActiveUsersChart(ctx, this.historicalManager, 'hour');
+                } catch (error) {
+                    console.error('Failed to create active users chart:', error);
+                }
+            }
+        }
+        
+        // Initialize engagement chart
+        const engagementCanvas = document.getElementById('engagementChart');
+        if (engagementCanvas) {
+            const ctx = engagementCanvas.getContext('2d');
+            if (typeof createEngagementChart !== 'undefined') {
+                try {
+                    this.charts.engagement = createEngagementChart(ctx, this.historicalManager, 'hour');
+                } catch (error) {
+                    console.error('Failed to create engagement chart:', error);
+                }
+            }
+        }
+    }
+
+    /**
+     * Set up time range toggle controls
+     */
+    setupTimeControls() {
+        const buttons = document.querySelectorAll('.time-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const chartType = e.target.dataset.chart;
+                const range = e.target.dataset.range;
+                
+                // Update active state
+                document.querySelectorAll(`.time-btn[data-chart="${chartType}"]`).forEach(b => {
+                    b.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                // Update the appropriate chart
+                if (chartType === 'activeUsers' && this.charts.activeUsers) {
+                    this.charts.activeUsers.destroy();
+                    const canvas = document.getElementById('activeUsersChart');
+                    const ctx = canvas.getContext('2d');
+                    this.charts.activeUsers = createActiveUsersChart(ctx, this.historicalManager, range);
+                } else if (chartType === 'engagement' && this.charts.engagement) {
+                    this.charts.engagement.destroy();
+                    const canvas = document.getElementById('engagementChart');
+                    const ctx = canvas.getContext('2d');
+                    this.charts.engagement = createEngagementChart(ctx, this.historicalManager, range);
+                }
+            });
+        });
+    }
+
+    /**
      * Show loading state
      */
     showLoading() {
@@ -247,7 +322,7 @@ class RedditActivityTracker {
     }
 
     /**
-     * Get human-readable time ago string
+     * Get human-readable time ago string with Eastern time
      */
     getTimeAgo(date) {
         const now = new Date();
@@ -256,12 +331,26 @@ class RedditActivityTracker {
         const diffHours = Math.floor(diffMins / 60);
         const diffDays = Math.floor(diffHours / 24);
 
-        if (diffMins < 1) return 'just now';
-        if (diffMins < 60) return `${diffMins}m ago`;
-        if (diffHours < 24) return `${diffHours}h ago`;
-        if (diffDays < 7) return `${diffDays}d ago`;
+        // Format the actual time in Eastern
+        const easternTime = date.toLocaleTimeString('en-US', {
+            timeZone: 'America/New_York',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
         
-        return date.toLocaleDateString();
+        let timeAgo;
+        if (diffMins < 1) timeAgo = 'just now';
+        else if (diffMins < 60) timeAgo = `${diffMins}m ago`;
+        else if (diffHours < 24) timeAgo = `${diffHours}h ago`;
+        else if (diffDays < 7) timeAgo = `${diffDays}d ago`;
+        else timeAgo = date.toLocaleDateString('en-US', { timeZone: 'America/New_York' });
+        
+        // Show Eastern time for recent posts
+        if (diffHours < 24) {
+            return `${timeAgo} (${easternTime} ET)`;
+        }
+        return timeAgo;
     }
 
     /**

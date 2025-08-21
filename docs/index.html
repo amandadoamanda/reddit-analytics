@@ -11,12 +11,40 @@
     
     <!-- Custom styles -->
     <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        .time-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .time-btn {
+            padding: 0.5rem 1rem;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: calc(var(--radius) * 0.5);
+            color: var(--muted-foreground);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .time-btn:hover {
+            background: var(--secondary)/80;
+            color: var(--foreground);
+        }
+        .time-btn.active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header class="header">
             <h1>r/apstudents Activity Tracker</h1>
-            <p class="subtitle">Real-time tracking of activity in the AP Students subreddit</p>
+            <p class="subtitle">Real-time tracking of activity in the AP Students subreddit (Eastern Time)</p>
             <div class="last-updated">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -76,6 +104,34 @@
                 </div>
             </section>
 
+            <!-- Historical Active Users -->
+            <section class="card">
+                <h2>Active Users Trend</h2>
+                <div class="time-controls">
+                    <button class="time-btn active" data-chart="activeUsers" data-range="hour">Hourly</button>
+                    <button class="time-btn" data-chart="activeUsers" data-range="day">Daily</button>
+                    <button class="time-btn" data-chart="activeUsers" data-range="week">Weekly</button>
+                    <button class="time-btn" data-chart="activeUsers" data-range="month">Monthly</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="activeUsersChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Historical Engagement -->
+            <section class="card">
+                <h2>Engagement Over Time</h2>
+                <div class="time-controls">
+                    <button class="time-btn active" data-chart="engagement" data-range="hour">Hourly</button>
+                    <button class="time-btn" data-chart="engagement" data-range="day">Daily</button>
+                    <button class="time-btn" data-chart="engagement" data-range="week">Weekly</button>
+                    <button class="time-btn" data-chart="engagement" data-range="month">Monthly</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="engagementChart"></canvas>
+                </div>
+            </section>
+
             <!-- Recent Posts -->
             <section class="card">
                 <h2>Recent Posts</h2>
@@ -98,6 +154,7 @@
 
     <!-- JavaScript -->
     <script src="js/charts.js"></script>
+    <script src="js/historical.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
