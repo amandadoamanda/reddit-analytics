@@ -1,0 +1,9 @@
+{
+  "subreddit": "apstudents",
+  "collection_interval_minutes": 5,
+  "data_retention_days": 30,
+  "dashboard_title": "r/apstudents Activity Tracker",
+  "dashboard_description": "Real-time tracking of activity in the AP Students subreddit",
+  "timezone": "UTC",
+  "max_recent_posts": 10
+}

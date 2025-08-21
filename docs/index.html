@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>r/apstudents Activity Tracker</title>
+    <meta name="description" content="Real-time tracking of activity in the AP Students subreddit">
+    
+    <!-- Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>r/apstudents Activity Tracker</h1>
+            <p class="subtitle">Real-time tracking of activity in the AP Students subreddit</p>
+            <div class="last-updated">
+                <span id="lastUpdated">Loading...</span>
+            </div>
+        </header>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading Reddit activity data...</p>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;">
+            <h3>Unable to load data</h3>
+            <p>There was an error loading the Reddit activity data. Please try again later.</p>
+        </div>
+
+        <main class="dashboard" id="dashboard" style="display: none;">
+            <!-- Key Metrics -->
+            <section class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Posts (Last 100)</h3>
+                    <div class="metric-value" id="totalPosts">-</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Total Score</h3>
+                    <div class="metric-value" id="totalScore">-</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Total Comments</h3>
+                    <div class="metric-value" id="totalComments">-</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Current Hour Activity</h3>
+                    <div class="metric-value" id="currentHourActivity">-</div>
+                </div>
+            </section>
+
+            <!-- Activity Heatmap -->
+            <section class="chart-section">
+                <h2>24-Hour Activity Heatmap</h2>
+                <p class="chart-description">Posts by hour of day (UTC time)</p>
+                <div class="chart-container">
+                    <canvas id="heatmapChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Activity Trends -->
+            <section class="chart-section">
+                <h2>Activity Trends</h2>
+                <p class="chart-description">Activity patterns over time</p>
+                <div class="chart-container">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Recent Posts -->
+            <section class="recent-posts">
+                <h2>Recent Posts</h2>
+                <p class="section-description">Latest posts from r/apstudents</p>
+                <div id="recentPostsList" class="posts-list">
+                    <!-- Posts will be populated by JavaScript -->
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>
+                Data collected from <a href="https://reddit.com/r/apstudents" target="_blank" rel="noopener">r/apstudents</a> 
+                using Reddit's public API. Updated every 5 minutes.
+            </p>
+            <p class="data-notice">
+                This dashboard shows public Reddit data only. No personal information is collected or stored.
+            </p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
