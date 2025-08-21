@@ -40,9 +40,10 @@ def fetch_reddit_data(subreddit, max_retries=3):
     """
     url = f"https://www.reddit.com/r/{subreddit}/new.json?limit=100"
     
-    # Custom User-Agent to identify our script
+    # Use a browser-like User-Agent to avoid blocks
     headers = {
-        'User-Agent': 'Reddit-Activity-Tracker/1.0 (https://github.com/user/reddit-analytics)'
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*'
     }
     
     for attempt in range(max_retries):

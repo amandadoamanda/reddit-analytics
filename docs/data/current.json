@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-08-21T01:24:09.704149",
+  "timestamp": "2025-08-21T01:40:34.213278",
   "subreddit": "apstudents",
   "total_posts": 100,
-  "total_score": 564,
-  "total_comments": 414,
+  "total_score": 568,
+  "total_comments": 419,
   "current_hour": 1,
   "hourly_posts": {
     "20": 9,
@@ -30,7 +30,7 @@
     {
       "title": "If I did good in AP Calc BC will I be ok in AP Stats?",
       "score": 1,
-      "comments": 3,
+      "comments": 4,
       "created_utc": 1755739180.0,
       "author": "LeatherWorking4541",
       "url": "https://reddit.com/r/APStudents/comments/1mvxdmo/if_i_did_good_in_ap_calc_bc_will_i_be_ok_in_ap/"
@@ -61,8 +61,8 @@
     },
     {
       "title": "Does anyone else get super tired?",
-      "score": 6,
-      "comments": 6,
+      "score": 9,
+      "comments": 7,
       "created_utc": 1755735248.0,
       "author": "Lower-Isopod-4623",
       "url": "https://reddit.com/r/APStudents/comments/1mvvy4u/does_anyone_else_get_super_tired/"
@@ -108,5 +108,5 @@
       "url": "https://reddit.com/r/APStudents/comments/1mvul3h/ap_csa_with_no_experience/"
     }
   ],
-  "collection_time_utc": "2025-08-21 01:24:09"
+  "collection_time_utc": "2025-08-21 01:40:34"
 }
