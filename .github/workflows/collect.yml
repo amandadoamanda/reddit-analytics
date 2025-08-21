@@ -3,7 +3,7 @@ name: Collect Reddit Data
 on:
   schedule:
     - cron: '*/5 * * * *'  # Every 5 minutes
-  workflow_dispatch:  # Allow manual triggers
+  workflow_dispatch:  # Manual trigger for testing
 
 permissions:
   contents: write
@@ -13,25 +13,20 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Checkout repository
+        uses: actions/checkout@v4
         
-    - name: Run data collection
-      run: python collect_reddit_data.py
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       
-    - name: Commit and push changes
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add docs/data/
-        if ! git diff --staged --quiet; then
-          git commit -m "Update Reddit data - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          git push
-        else
-          echo "No changes to commit"
-        fi
+      - name: Collect Reddit data
+        run: python collect_reddit_data.py
+        
+      - name: Commit and push data
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: 'Update Reddit activity data'
+          add: 'docs/data/**'
+          default_author: github_actions
