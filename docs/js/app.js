@@ -97,21 +97,28 @@ class RedditActivityTracker {
      * Update the metrics cards
      */
     updateMetrics() {
-        const { total_posts, total_score, total_comments, hourly_posts, current_hour } = this.data;
+        const { 
+            active_users, 
+            subscribers, 
+            posts_last_hour, 
+            total_score_recent, 
+            total_comments_recent 
+        } = this.data;
         
         // Format numbers with commas
         const formatNumber = (num) => {
+            if (num === undefined || num === null) return '-';
             return new Intl.NumberFormat('en-US').format(num);
         };
         
         // Update metric values
-        document.getElementById('totalPosts').textContent = formatNumber(total_posts);
-        document.getElementById('totalScore').textContent = formatNumber(total_score);
-        document.getElementById('totalComments').textContent = formatNumber(total_comments);
+        document.getElementById('activeUsers').textContent = formatNumber(active_users);
+        document.getElementById('subscribers').textContent = formatNumber(subscribers);
+        document.getElementById('postsLastHour').textContent = formatNumber(posts_last_hour);
         
-        // Current hour activity
-        const currentHourPosts = hourly_posts[current_hour] || 0;
-        document.getElementById('currentHourActivity').textContent = formatNumber(currentHourPosts);
+        // Calculate total engagement
+        const totalEngagement = (total_score_recent || 0) + (total_comments_recent || 0);
+        document.getElementById('recentEngagement').textContent = formatNumber(totalEngagement);
     }
 
     /**

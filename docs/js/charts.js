@@ -18,29 +18,27 @@ Chart.defaults.borderColor = chartColors.border;
 Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
 function createActivityHeatmap(ctx, data) {
-    const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
-    const hourlyData = new Array(24).fill(0);
-    
-    // Aggregate data by hour
-    if (data && data.hourly_posts) {
-        Object.entries(data.hourly_posts).forEach(([hour, count]) => {
-            hourlyData[parseInt(hour)] = count;
-        });
-    }
+    // For now, create a simple visualization of active users over collection times
+    // Since we don't have hourly breakdown anymore, we'll show a different metric
+    const labels = ['Active Users', 'Posts/Hour', 'Engagement'];
+    const values = [
+        data.active_users || 0,
+        (data.posts_last_hour || 0) * 10, // Scale for visibility
+        ((data.total_score_recent || 0) + (data.total_comments_recent || 0)) / 10 // Scale down
+    ];
 
     return new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: hours,
+            labels: labels,
             datasets: [{
-                label: 'Posts per Hour',
-                data: hourlyData,
-                backgroundColor: function(context) {
-                    const value = context.raw || 0;
-                    const max = Math.max(...hourlyData);
-                    const intensity = max > 0 ? value / max : 0;
-                    return `rgba(96, 165, 250, ${0.3 + intensity * 0.7})`;
-                },
+                label: 'Activity Metrics',
+                data: values,
+                backgroundColor: [
+                    'rgba(96, 165, 250, 0.8)',
+                    'rgba(147, 197, 253, 0.8)', 
+                    'rgba(59, 130, 246, 0.8)'
+                ],
                 borderColor: chartColors.primary,
                 borderWidth: 1,
                 borderRadius: 4,
@@ -60,7 +58,7 @@ function createActivityHeatmap(ctx, data) {
                 },
                 title: {
                     display: true,
-                    text: '24-Hour Activity Pattern',
+                    text: 'Current Activity Snapshot',
                     color: chartColors.text,
                     font: {
                         size: 16,
@@ -81,7 +79,12 @@ function createActivityHeatmap(ctx, data) {
                     displayColors: false,
                     callbacks: {
                         label: function(context) {
-                            return `${context.raw} posts`;
+                            const label = context.label;
+                            const value = context.raw;
+                            if (label === 'Active Users') return `${value} users online`;
+                            if (label === 'Posts/Hour') return `${value / 10} posts/hour`;
+                            if (label === 'Engagement') return `${value * 10} total engagement`;
+                            return `${value}`;
                         }
                     }
                 }

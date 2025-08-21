@@ -1,31 +1,11 @@
 {
-  "timestamp": "2025-08-21T01:40:34.213278",
+  "timestamp": "2025-08-21T02:01:04.246741",
   "subreddit": "apstudents",
-  "total_posts": 100,
-  "total_score": 568,
-  "total_comments": 419,
-  "current_hour": 1,
-  "hourly_posts": {
-    "20": 9,
-    "19": 9,
-    "18": 10,
-    "17": 10,
-    "16": 8,
-    "15": 4,
-    "14": 10,
-    "13": 4,
-    "12": 2,
-    "11": 1,
-    "10": 2,
-    "7": 1,
-    "5": 4,
-    "0": 6,
-    "23": 2,
-    "22": 8,
-    "21": 8,
-    "8": 1,
-    "1": 1
-  },
+  "active_users": 105,
+  "subscribers": 342536,
+  "posts_last_hour": 0,
+  "total_score_recent": 20,
+  "total_comments_recent": 21,
   "recent_posts": [
     {
       "title": "If I did good in AP Calc BC will I be ok in AP Stats?",
@@ -45,8 +25,8 @@
     },
     {
       "title": "To The People Who Have Taken AP Physics 1",
-      "score": 2,
-      "comments": 0,
+      "score": 3,
+      "comments": 1,
       "created_utc": 1755738259.0,
       "author": "Soft-Performance2550",
       "url": "https://reddit.com/r/APStudents/comments/1mvx1g6/to_the_people_who_have_taken_ap_physics_1/"
@@ -61,8 +41,8 @@
     },
     {
       "title": "Does anyone else get super tired?",
-      "score": 9,
-      "comments": 7,
+      "score": 7,
+      "comments": 9,
       "created_utc": 1755735248.0,
       "author": "Lower-Isopod-4623",
       "url": "https://reddit.com/r/APStudents/comments/1mvvy4u/does_anyone_else_get_super_tired/"
@@ -108,5 +88,5 @@
       "url": "https://reddit.com/r/APStudents/comments/1mvul3h/ap_csa_with_no_experience/"
     }
   ],
-  "collection_time_utc": "2025-08-21 01:40:34"
+  "collection_time_utc": "2025-08-21 02:01:04"
 }

@@ -27,9 +27,42 @@ def load_config():
         return None
 
 
-def fetch_reddit_data(subreddit, max_retries=3):
+def fetch_subreddit_about(subreddit, max_retries=3):
     """
-    Fetch data from Reddit's public JSON API with retry logic.
+    Fetch subreddit about data including active user count.
+    """
+    url = f"https://www.reddit.com/r/{subreddit}/about.json"
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*'
+    }
+    
+    for attempt in range(max_retries):
+        try:
+            print(f"Fetching subreddit info for r/{subreddit} (attempt {attempt + 1}/{max_retries})")
+            
+            request = urllib.request.Request(url, headers=headers)
+            
+            with urllib.request.urlopen(request, timeout=30) as response:
+                if response.status == 200:
+                    data = json.loads(response.read().decode('utf-8'))
+                    print(f"Successfully fetched subreddit info")
+                    return data
+                    
+        except Exception as e:
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt
+                print(f"Error: {e}. Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+            else:
+                print(f"Failed to fetch subreddit info: {e}")
+    
+    return None
+
+def fetch_reddit_posts(subreddit, max_retries=3):
+    """
+    Fetch recent posts from Reddit's public JSON API with retry logic.
     
     Args:
         subreddit (str): The subreddit name (without r/)
@@ -38,7 +71,7 @@ def fetch_reddit_data(subreddit, max_retries=3):
     Returns:
         dict or None: Reddit API response data or None if failed
     """
-    url = f"https://www.reddit.com/r/{subreddit}/new.json?limit=100"
+    url = f"https://www.reddit.com/r/{subreddit}/new.json?limit=25"
     
     # Use a browser-like User-Agent to avoid blocks
     headers = {
@@ -48,14 +81,14 @@ def fetch_reddit_data(subreddit, max_retries=3):
     
     for attempt in range(max_retries):
         try:
-            print(f"Fetching data for r/{subreddit} (attempt {attempt + 1}/{max_retries})")
+            print(f"Fetching recent posts for r/{subreddit} (attempt {attempt + 1}/{max_retries})")
             
             request = urllib.request.Request(url, headers=headers)
             
             with urllib.request.urlopen(request, timeout=30) as response:
                 if response.status == 200:
                     data = json.loads(response.read().decode('utf-8'))
-                    print(f"Successfully fetched {len(data.get('data', {}).get('children', []))} posts")
+                    print(f"Successfully fetched {len(data.get('data', {}).get('children', []))} recent posts")
                     return data
                 else:
                     print(f"HTTP error: {response.status}")
@@ -91,59 +124,75 @@ def fetch_reddit_data(subreddit, max_retries=3):
     return None
 
 
-def process_reddit_data(reddit_data, subreddit):
+def process_reddit_data(about_data, posts_data, subreddit):
     """
-    Process Reddit API response and extract relevant metrics.
+    Process Reddit API responses and extract relevant metrics.
     
     Args:
-        reddit_data (dict): Raw Reddit API response
+        about_data (dict): Subreddit about.json response
+        posts_data (dict): Recent posts response
         subreddit (str): The subreddit name
         
     Returns:
         dict: Processed data ready for storage
     """
-    if not reddit_data or 'data' not in reddit_data:
-        return None
+    # Extract subreddit metrics
+    subreddit_info = {}
+    if about_data and 'data' in about_data:
+        sub_data = about_data['data']
+        subreddit_info = {
+            'active_users': sub_data.get('active_user_count', 0),  # Users active in last 15 minutes
+            'subscribers': sub_data.get('subscribers', 0),
+            'accounts_active': sub_data.get('accounts_active', 0),  # Alternative field for active users
+            'created_utc': sub_data.get('created_utc', 0),
+            'public_description': sub_data.get('public_description', '')
+        }
+        # Use accounts_active if active_user_count is 0 or missing
+        if subreddit_info['active_users'] == 0 and subreddit_info['accounts_active'] > 0:
+            subreddit_info['active_users'] = subreddit_info['accounts_active']
+    
+    # Process recent posts
+    posts_info = {
+        'recent_posts': [],
+        'total_score': 0,
+        'total_comments': 0,
+        'posts_last_hour': 0
+    }
+    
+    if posts_data and 'data' in posts_data:
+        posts = posts_data['data'].get('children', [])
+        current_time = datetime.utcnow()
+        one_hour_ago = current_time.timestamp() - 3600
         
-    posts = reddit_data['data'].get('children', [])
-    
-    # Calculate basic metrics
-    total_posts = len(posts)
-    total_score = sum(post['data'].get('score', 0) for post in posts)
-    total_comments = sum(post['data'].get('num_comments', 0) for post in posts)
-    
-    # Get current hour for activity tracking
-    current_hour = datetime.utcnow().hour
-    
-    # Count posts by hour (using created_utc)
-    hourly_posts = {}
-    for post in posts:
-        post_time = datetime.fromtimestamp(post['data']['created_utc'])
-        hour = post_time.hour
-        hourly_posts[hour] = hourly_posts.get(hour, 0) + 1
-    
-    # Extract recent post titles and scores
-    recent_posts = []
-    for post in posts[:10]:  # Top 10 most recent
-        post_data = post['data']
-        recent_posts.append({
-            'title': post_data.get('title', ''),
-            'score': post_data.get('score', 0),
-            'comments': post_data.get('num_comments', 0),
-            'created_utc': post_data.get('created_utc', 0),
-            'author': post_data.get('author', '[deleted]'),
-            'url': f"https://reddit.com{post_data.get('permalink', '')}"
-        })
+        for post in posts[:10]:  # Keep top 10 for display
+            post_data = post['data']
+            created_time = post_data.get('created_utc', 0)
+            
+            # Count posts from last hour
+            if created_time > one_hour_ago:
+                posts_info['posts_last_hour'] += 1
+            
+            posts_info['recent_posts'].append({
+                'title': post_data.get('title', ''),
+                'score': post_data.get('score', 0),
+                'comments': post_data.get('num_comments', 0),
+                'created_utc': created_time,
+                'author': post_data.get('author', '[deleted]'),
+                'url': f"https://reddit.com{post_data.get('permalink', '')}"
+            })
+            
+            posts_info['total_score'] += post_data.get('score', 0)
+            posts_info['total_comments'] += post_data.get('num_comments', 0)
     
     return {
         'timestamp': datetime.utcnow().isoformat(),
         'subreddit': subreddit,
-        'total_posts': total_posts,
-        'total_score': total_score,
-        'total_comments': total_comments,
-        'current_hour': current_hour,
-        'hourly_posts': hourly_posts,
-        'recent_posts': recent_posts,
+        'active_users': subreddit_info.get('active_users', 0),
+        'subscribers': subreddit_info.get('subscribers', 0),
+        'posts_last_hour': posts_info['posts_last_hour'],
+        'total_score_recent': posts_info['total_score'],
+        'total_comments_recent': posts_info['total_comments'],
+        'recent_posts': posts_info['recent_posts'],
         'collection_time_utc': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     }
 
@@ -197,13 +246,18 @@ def main():
     # Create data directory
     Path('docs/data').mkdir(parents=True, exist_ok=True)
     
-    # Fetch and process data
-    reddit_data = fetch_reddit_data(subreddit)
-    if reddit_data:
-        processed_data = process_reddit_data(reddit_data, subreddit)
+    # Fetch subreddit info and recent posts
+    about_data = fetch_subreddit_about(subreddit)
+    posts_data = fetch_reddit_posts(subreddit)
+    
+    if about_data or posts_data:
+        processed_data = process_reddit_data(about_data, posts_data, subreddit)
         if processed_data:
             save_data(processed_data)
-            print("Data collection completed successfully")
+            print(f"Data collection completed successfully")
+            print(f"  Active users: {processed_data['active_users']}")
+            print(f"  Subscribers: {processed_data['subscribers']}")
+            print(f"  Posts in last hour: {processed_data['posts_last_hour']}")
         else:
             print("Failed to process Reddit data")
     else:
